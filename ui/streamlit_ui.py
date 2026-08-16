@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from models.cv_model import AnalisisCV
 from services.pdf_processor import extraer_texto_pdf
@@ -12,6 +13,19 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
+
+    # Configuración de API Key en la barra lateral
+    st.sidebar.header("🔑 Configuración")
+    api_key_env = os.environ.get("GROQ_API_KEY", "")
+    api_key_input = st.sidebar.text_input(
+        "Groq API Key",
+        value=api_key_env,
+        type="password",
+        help="Introduce tu API Key de Groq. Si ya está configurada en el archivo .env, se cargará automáticamente."
+    )
+    
+    if api_key_input:
+        os.environ["GROQ_API_KEY"] = api_key_input
     
     st.title("📄 Sistema de Evaluación de CVs con IA")
     st.markdown("""
@@ -113,6 +127,10 @@ def mostrar_area_resultados():
             
         if not descripcion_puesto:
             st.error("⚠️ Por favor proporciona una descripción detallada del puesto")
+            return
+
+        if not os.environ.get("GROQ_API_KEY"):
+            st.error("⚠️ Por favor ingresa tu Groq API Key en la barra lateral o confígurala en un archivo `.env` para poder continuar.")
             return
         
         procesar_analisis(archivo_cv, descripcion_puesto)
